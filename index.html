@@ -1,15 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html>
+  <head lang="en">
     <meta charset="utf-8" />
-    <title>Peter 2.0</title>
-    <link rel="stylesheet" href="stylesheet.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700&family=Lato&display=swap"
-      rel="stylesheet"
-    />
+    <title>Space</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      /* Button styling */
+      #moveForwardButton {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 1; /* Ensures button is on top of the canvas */
+      }
+
+      #moveBackButton {
+        position: absolute;
+        top: 20px;
+        left: 320px;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 1; /* Ensures button is on top of the canvas */
+      }
+
+      #moveLeftButton {
+        position: absolute;
+        top: 20px;
+        left: 600px;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 1; /* Ensures button is on top of the canvas */
+      }
+
+      #moveRightButton {
+        position: absolute;
+        top: 20px;
+        left: 900px;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 1; /* Ensures button is on top of the canvas */
+      }
+
+      #moveButton:hover {
+        background-color: #2980b9;
+      }
+    </style>
     <!-- Import map for Three.js CDN -->
     <script type="importmap">
       {
@@ -21,34 +81,10 @@
     </script>
   </head>
   <body>
-    <section class="flex">
-      <div class="flex flex-col left center">
-        <div class="text-container">
-          <h1>Peter 2.0: The Human Cyborg</h1>
-          <p class="text">
-            In 2017, Dr. Peter Scott-Morgan, a visionary roboticist, was
-            diagnosed with motor neuron disease (MND). This degenerative illness
-            would eventually paralyze him completely except for the movement of
-            his eyes. However, Peter chose to fight back with technology and
-            become Peter 2.0, the “world’s first human cyborg.”<br /><br />Building
-            on this vision, Peter 2.0 v2 is a project I am working on that uses
-            custom shaders written in GLSL to enhance the visual aspects of his
-            digital representation, creating more immersive effects, while
-            focusing on improving the overall aesthetic experience of his
-            transformation.
-          </p>
-          <div class="btn-wrapper">
-            <a class="btn" href="https://vr-cyborg-studio-stable.glitch.me/"
-              >See VR Experience</a
-            >
-            <a class="btn" href="./scene.html">Peter 2.0 v2</a>
-          </div>
-        </div>
-      </div>
-      <div class="right" id="canvas-container">
-        <canvas></canvas>
-      </div>
-    </section>
-    <script type="module" src="./main.js"></script>
+    <button id="moveForwardButton">Move Camera Forward</button>
+    <button id="moveBackButton">Move Camera back</button>
+    <button id="moveLeftButton">Move Camera Left</button>
+    <button id="moveRightButton">Move Camera Right</button>
+    <script type="module" src="./index.js"></script>
   </body>
 </html>

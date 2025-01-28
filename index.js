@@ -1,5 +1,4 @@
-import * as THREE from "three"; // This will now be resolved by the import map
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // Import Shaders
@@ -7,6 +6,9 @@ import vertexShader from "./shaders/earth/vertex.glsl";
 import fragmentShader from "./shaders/earth/fragment.glsl";
 import atmosphereVertexShader from "./shaders/earth/atmosphereVertex.glsl";
 import atmosphereFragmentShader from "./shaders/earth/atmosphereFragment.glsl";
+import vertexShader02 from "./shaders/earth02/vertex.glsl";
+import fragmentShader02 from "./shaders/earth02/fragment.glsl";
+import { uniforms } from "/shaders/earth02/uniforms.js";
 import sunVertexShader from "./shaders/sun/vertex.glsl";
 import sunFragmentShader from "./shaders/sun/fragment.glsl";
 import sunAtmosphereVertexShader from "./shaders/sun/atmosphereVertex.glsl";
@@ -38,10 +40,6 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
-document.body.appendChild(VRButton.createButton(renderer));
-
-// Orbital Controls
-new OrbitControls(camera, renderer.domElement);
 
 // Sphere class
 class Sphere extends THREE.Mesh {
@@ -78,7 +76,7 @@ class Sphere extends THREE.Mesh {
 
 // Earth
 const earth = new Sphere({
-  radius: 5,
+  radius: 10,
   widthSegments: 50,
   heightSegments: 50,
   vertexShader: vertexShader,
@@ -89,11 +87,12 @@ const earth = new Sphere({
     },
   },
 });
+console.log(earth);
 scene.add(earth);
 
 // Earth's Atmosphere
 const earthAtmosphere = new Sphere({
-  radius: 5,
+  radius: 10,
   widthSegments: 50,
   heightSegments: 50,
   vertexShader: atmosphereVertexShader,
@@ -107,7 +106,56 @@ scene.add(earthAtmosphere);
 // Earth Group
 const earthGroup = new THREE.Group();
 earthGroup.add(earth, earthAtmosphere);
-// scene.add(earthGroup);
+earthGroup.position.set(0, 0, -60);
+scene.add(earthGroup);
+
+// Vertex Earth
+const colorMap = new THREE.TextureLoader().load(
+  "/assets/earth02/00_earthmap1k.jpg"
+);
+const elevationMap = new THREE.TextureLoader().load(
+  "/assets/earth02/01_earthbump1k.jpg"
+);
+const alphaMap = new THREE.TextureLoader().load(
+  "/assets/earth02/02_earthspec1k.jpg"
+);
+uniforms.colorTexture.value = colorMap;
+uniforms.elevTexture.value = elevationMap;
+uniforms.alphaTexture.value = alphaMap;
+
+const globeGroup = new THREE.Group();
+globeGroup.position.set(200, 0, -32.5);
+scene.add(globeGroup);
+
+const geo = new THREE.IcosahedronGeometry(1, 10);
+const mat = new THREE.MeshBasicMaterial({
+  color: 0x202020,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.05,
+});
+const cube = new THREE.Mesh(geo, mat);
+globeGroup.add(cube);
+
+const detail = 500;
+// const sphere = new Sphere({
+//   radius: 1,
+//   widthSegments: detail,
+//   heightSegments: detail,
+//   vertexShader: vertexShader02,
+//   fragmentShader: fragmentShader02,
+//   uniforms: uniforms,
+//   transparent: true,
+// });
+const pointsGeo = new THREE.SphereGeometry(1, detail, detail);
+const pointsMat = new THREE.ShaderMaterial({
+  uniforms: uniforms,
+  vertexShader: vertexShader02,
+  fragmentShader: fragmentShader02,
+  transparent: true,
+});
+const points = new THREE.Points(pointsGeo, pointsMat);
+globeGroup.add(points);
 
 // Sun
 const sun = new Sphere({
@@ -124,10 +172,6 @@ const sun = new Sphere({
   },
 });
 scene.add(sun);
-const animateNoise = (time) => {
-  time *= 0.001;
-  sun.material.uniforms.time.value = time;
-};
 
 // Sun's Atmosphere
 const sunAtmosphere = new Sphere({
@@ -150,8 +194,6 @@ sunGroup.position.set(0, 0, 0);
 
 // Create a Starfield
 const starGeometry = new THREE.BufferGeometry();
-// const starCount = 15000;
-// const starVerticies = new Float32Array(starCount);
 const starMaterial = new THREE.PointsMaterial({
   color: 0xffffff,
 });
@@ -169,10 +211,71 @@ starGeometry.setAttribute(
 const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
+// Store camera speed and movement distance
+let cameraSpeed = 0.05; // Speed of the camera movement
+let forwardBackwardDistance = 60; // Distance to move forward or backward
+let leftRightDistance = 200; // Distance to move left or right
+let isMoving = false; // Flag to check if the camera is currently moving
+let targetCameraPosition = camera.position.clone(); // Start with the current camera position
+
+// Handle button click to move the camera forward
+document.getElementById("moveForwardButton").addEventListener("click", () => {
+  if (!isMoving) {
+    // Incrementally move the camera forward by 60 units
+    targetCameraPosition.z -= forwardBackwardDistance;
+    isMoving = true; // Start moving the camera
+  }
+});
+
+// Handle button click to move the camera back
+document.getElementById("moveBackButton").addEventListener("click", () => {
+  if (!isMoving) {
+    // Incrementally move the camera back by 60 units
+    targetCameraPosition.z += forwardBackwardDistance;
+    isMoving = true; // Start moving the camera
+  }
+});
+
+// Handle button click to move the camera left
+document.getElementById("moveLeftButton").addEventListener("click", () => {
+  if (!isMoving) {
+    // Incrementally move the camera left by 200 units
+    targetCameraPosition.x -= leftRightDistance;
+    isMoving = true; // Start moving the camera
+  }
+});
+
+// Handle button click to move the camera right
+document.getElementById("moveRightButton").addEventListener("click", () => {
+  if (!isMoving) {
+    // Incrementally move the camera right by 200 units
+    targetCameraPosition.x += leftRightDistance;
+    isMoving = true; // Start moving the camera
+  }
+});
+
+// Function to smoothly move the camera
+function moveCamera() {
+  if (isMoving) {
+    // Lerp (smoothly interpolate) the camera's position toward the target position
+    camera.position.lerp(targetCameraPosition, cameraSpeed);
+
+    // Check if the camera has reached the target position (a small threshold)
+    if (camera.position.distanceTo(targetCameraPosition) < 0.1) {
+      camera.position.copy(targetCameraPosition); // Ensure camera reaches the exact target position
+      isMoving = false; // Stop moving the camera
+    }
+  }
+}
+
 renderer.setAnimationLoop((time) => {
   renderer.render(scene, camera);
-  animateNoise(time);
+
+  // Move the camera smoothly
+  moveCamera();
+
   // Rotate
   earth.rotation.y += 0.001;
   sun.rotation.y += 0.001;
+  globeGroup.rotation.y += 0.01;
 });
